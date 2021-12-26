@@ -158,4 +158,122 @@ RSpec.describe Api::V1::CoursesController, type: :controller do
       end
     end
   end
+
+  describe '#update' do
+    let!(:course) { create(:course, :with_chapters).reload }
+    let(:chapter) { course.chapters.first }
+    let(:lesson) { chapter.lessons.first }
+    let(:lesson_to_delete) { chapter.lessons.last }
+
+    context 'for successful case' do
+      let(:params) do
+        {
+          id: course.id,
+          title: 'StarTrek',
+          description: '>_<',
+          chapters_attributes: [
+            {
+              id: chapter.id,
+              title: 'Into Darkness',
+              lessons_attributes: [
+                {
+                  id: lesson.id,
+                  title: "nutella",
+                  content: "B-ready",
+                  description: "=_="
+                },
+                {
+                  id: lesson_to_delete.id,
+                  _destroy: '1'
+                },
+              ]
+            }
+          ]
+        }
+      end
+
+      it 'returns ok and data' do
+        expect { patch :update, params: params, format: :json }.to change { Lesson.count }.by(-1)
+
+        expect(response.status).to eq(200)
+        expect(response).to render_template(:show)
+        expect(course.reload.title).to eq(params[:title])
+        expect(course.description).to eq(params[:description])
+        expect(chapter.reload.title).to eq(params[:chapters_attributes][0][:title])
+        expect(lesson.reload.title).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:title])
+        expect(lesson.content).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:content])
+        expect(lesson.description).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:description])
+      end
+    end
+
+    context 'for failed case' do
+      context 'without course title empty' do
+        let(:params) do
+          {
+            id: course.id,
+            title: '',
+            description: '>_<',
+            chapters_attributes: [
+              {
+                id: chapter.id,
+                title: 'Into Darkness',
+                lessons_attributes: [
+                  {
+                    id: lesson.id,
+                    title: "nutella",
+                    content: "B-ready",
+                    description: "=_="
+                  },
+                  {
+                    id: lesson_to_delete.id,
+                    _destroy: '1'
+                  },
+                ]
+              }
+            ]
+          }
+        end
+
+        it 'returns 422' do
+          patch :update, params: params, format: :json
+          expect(response.status).to eq(422)
+          expect(json_body['code']).to eq('ActiveRecord::RecordInvalid')
+          expect(course.reload.description).not_to eq(params[:mentor_title])
+        end
+      end
+
+      context 'with lesson title empty' do
+        let(:params) do
+          {
+            id: course.id,
+            title: 'StarTrek',
+            description: '>_<',
+            chapters_attributes: [
+              {
+                id: chapter.id,
+                title: 'Into Darkness',
+                lessons_attributes: [
+                  {
+                    id: lesson.id,
+                    title: "",
+                    content: "B-ready",
+                    description: "=_="
+                  }
+                ]
+              }
+            ]
+          }
+        end
+
+        it 'returns 422' do
+          patch :update, params: params, format: :json
+          expect(response.status).to eq(422)
+          expect(json_body['code']).to eq('ActiveRecord::RecordInvalid')
+          expect(course.reload.title).not_to eq(params[:title])
+          expect(chapter.reload.title).not_to eq(params[:chapters_attributes][0][:title])
+          expect(lesson.reload.title).not_to eq(params[:chapters_attributes][0][:lessons_attributes][0][:title])
+        end
+      end
+    end
+  end
 end

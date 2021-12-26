@@ -11,7 +11,8 @@ class Api::V1::CoursesController < ApiController
   end
 
   def update
-
+    @course.update!(course_params)
+    render :show, status: :ok
   end
 
   def destroy
