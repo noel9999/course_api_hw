@@ -21,7 +21,6 @@ class Api::V1::CoursesController < ApiController
   end
 
   def show
-
   end
 
   private

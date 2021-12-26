@@ -302,4 +302,30 @@ RSpec.describe Api::V1::CoursesController, type: :controller do
       end
     end
   end
+
+  describe '#show' do
+    let!(:course) { create(:course, :with_chapters).reload }
+    let(:params) { { id: course.id } }
+
+    context 'for successful case' do
+      it 'returns 200 and the data' do
+        get :show, params: params, format: :json
+        expect(response.status).to eq(200)
+        expect(response).to render_template(:show)
+        expect(json_data['course']['title']).to eq(course.title)
+        expect(json_data['course']['chapters'][0]['title']).to eq(course.chapters.first.title)
+        expect(json_data['course']['chapters'][0]['lessons'][0]['title']).to eq(course.chapters.first.lessons.first.title)
+      end
+    end
+
+    context 'for failed case' do
+      context 'when id does not exist' do
+        let(:params) { { id: 'course.id' } }
+        it 'returns 404' do
+          get :show, params: params, format: :json
+          expect(response.status).to eq(404)
+        end
+      end
+    end
+  end
 end
