@@ -276,4 +276,30 @@ RSpec.describe Api::V1::CoursesController, type: :controller do
       end
     end
   end
+
+  describe '#destroy' do
+    let!(:course) { create(:course, :with_chapters).reload }
+    let(:params) { { id: course.id } }
+
+    context 'for successful case' do
+      it 'destroys all related data and returns 200' do
+        expect { delete :destroy, params: params, format: :json }.to change { Course.count }.by(-1)
+        .and change { Chapter.count }.by(- course.chapters.size)
+        .and change { Lesson.count }.by(- course.lessons.size)
+        expect(response.status).to eq(200)
+      end
+    end
+
+    context 'for failed case' do
+      context 'when one of the lessons is not allowed to destroyed' do
+        before { allow_any_instance_of(Lesson).to receive(:destroy!).and_raise(ActiveRecord::RecordInvalid) }
+        it 'destroys nothing and returns 200' do
+          expect { delete :destroy, params: params, format: :json }.to change { Course.count }.by(0)
+          .and change { Chapter.count }.by(0)
+          .and change { Lesson.count }.by(0)
+          expect(response.status).to eq(422)
+        end
+      end
+    end
+  end
 end

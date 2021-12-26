@@ -16,7 +16,8 @@ class Api::V1::CoursesController < ApiController
   end
 
   def destroy
-
+    @course.destroy!
+    head :ok
   end
 
   def show
