@@ -1,6 +1,6 @@
 class Chapter < ApplicationRecord
   belongs_to :course
-  has_many :lessons, dependent: :destroy
+  has_many :lessons, -> { order(:order, :id) }, dependent: :destroy, inverse_of: :chapter
 
   validates :title, presence: true
   validates_associated :lessons

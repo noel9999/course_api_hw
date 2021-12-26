@@ -54,7 +54,6 @@ RSpec.describe Api::V1::CoursesController, type: :controller do
         expect { post :create, params: params, format: :json }.to change { Course.count }.by(1)
         .and change { Chapter.count }.by(2)
         .and change { Lesson.count }.by(2)
-
         expect(response.status).to eq(201)
         expect(response).to render_template(:show)
         expect(json_data['course']['title']).to eq(params[:title])
@@ -180,7 +179,8 @@ RSpec.describe Api::V1::CoursesController, type: :controller do
                   id: lesson.id,
                   title: "nutella",
                   content: "B-ready",
-                  description: "=_="
+                  description: "=_=",
+                  order: 9
                 },
                 {
                   id: lesson_to_delete.id,
@@ -203,6 +203,7 @@ RSpec.describe Api::V1::CoursesController, type: :controller do
         expect(lesson.reload.title).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:title])
         expect(lesson.content).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:content])
         expect(lesson.description).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:description])
+        expect(lesson.order).to eq(params[:chapters_attributes][0][:lessons_attributes][0][:order])
       end
     end
 

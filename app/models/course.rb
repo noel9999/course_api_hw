@@ -1,5 +1,5 @@
 class Course < ApplicationRecord
-  has_many :chapters, dependent: :destroy
+  has_many :chapters, -> { order(:order, :id) }, dependent: :destroy, inverse_of: :course
   has_many :lessons, through: :chapters
 
   validates :title, :mentor_title, presence: true
