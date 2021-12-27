@@ -12,6 +12,8 @@ class Api::V1::CoursesController < ApiController
 
   def update
     @course.update!(course_params)
+    # unlock this if we want to get the right order for chapters and lesson of that course after updating, but we would get another extra query. Or just try to fetch the course by SHOW or INDEX api
+    # @course.reload
     render :show, status: :ok
   end
 
